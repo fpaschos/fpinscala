@@ -183,5 +183,17 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Cons(x,xt), Cons(y,yt)) => Cons(f(x,y), mergeLists(xt,yt)(f))
   }
   
-  //24.
+  //24. Fail 
+  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean = ???
+//  def startsWith[A](l: List[A], prefix: List[A]): Boolean = (l,prefix) match {
+//    case (_,Nil) => true
+//    case (Cons(h,t),Cons(h2,t2)) if h == h2 => startsWith(t, t2)
+//    case _ => false
+//  }
+//  @annotation.tailrec
+//  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean = l match {
+//    case Nil => false
+//    case Cons(h,t) if startsWith(l, sub) => true
+//    case Cons(h,t) => hasSubsequence(t, sub)
+//  }
 }
