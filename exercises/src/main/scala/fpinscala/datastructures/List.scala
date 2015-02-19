@@ -72,13 +72,14 @@ object List { // `List` companion object. Contains functions for creating and wo
     }
   }
 
-  def dropWhile[A](l: List[A]) (f: A => Boolean): List[A] = {
-    //Fail
-    l match {
-      case Cons(h, t) if f(h) => dropWhile(t)(f)
-      case _ => l
-    }
-  }
+  //Fail
+  def dropWhile[A](l: List[A]) (f: A => Boolean): List[A] = ???
+//  {
+//    l match {
+//      case Cons(h, t) if f(h) => dropWhile(t)(f)
+//      case _ => l
+//    }
+//  }
 
   def init[A](l: List[A]): List[A] = {
     //Ok with variation Nil exception
@@ -93,7 +94,94 @@ object List { // `List` companion object. Contains functions for creating and wo
   //Ok
   def length[A](l: List[A]): Int = foldRight(l, 0) { (_, acc:Int) => acc + 1}
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = sys.error("todo")
+  //Ok
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = {
+    l match {
+      case Nil => z
+      case Cons(h,t) => foldLeft(t, f(z,h))(f)
+    }
+  }
+  
+  //Ok variation foldRight
+  def reverse[A] (xs: List[A]): List[A] = {
+    foldRight(xs, Nil:List[A]) {(x, acc) => append(acc,List(x))}
+  }
+  
+  //Ok
+  def reverse2[A] (xs: List[A]): List[A] = {
+    foldLeft(xs, Nil:List[A]) { (acc, x) => Cons(x, acc)}
+  }
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
+  //Ok
+  def foldRightWithFL[A,B](as: List[A], z: B)(f: (A, B) => B): B = {
+    foldLeft(reverse(as), z)((a,b) => f(b,a))
+  }
+  
+  //Fail (Too hard)
+  def foldLeftWithFR[A,B] (xs: List[A], z:B) (f:(B,A) =>B) :B = ???
+//  {
+//    foldRight(xs, (b:B) => b)((a,g) => b => g(f(b,a)))(z)
+//  }
+
+  //Ok 
+  def appendWithFL[A](a1: List[A], a2: List[A]): List[A] = {
+    foldLeft(reverse2(a1), a2) {(acc, x)=> Cons(x, acc)}
+  }
+
+  def appendWithFR[A](a1: List[A], a2: List[A]): List[A] = {
+    foldRight(a1, a2) {Cons(_,_)}
+  }
+  
+  //Ok
+  def concat[A](l: List[List[A]]): List[A] = {
+    foldLeft(l, Nil:List[A]) {append(_,_)}
+  }
+  
+  //Ok
+  def add1(l: List[Int]): List[Int] = {
+    foldRight(l, Nil:List[Int]) {(x, acc) =>Cons(x+1, acc)}
+  }
+  
+  //17. Ok
+  def toStringList(l: List[Int]): List[String] = {
+    foldRight(l, Nil:List[String]) ((x, acc) => Cons(x.toString, acc))
+  }
+  
+  //18. Ok [1 of 3 variations (foldRight, foldRightViaFoldLeft or mutation)]
+  def map[A,B](l: List[A])(f: A => B): List[B] = {
+    foldRightWithFL(l, Nil:List[B])((h,t) => Cons(f(h),t))
+  }
+  
+  //19. Ok with one variation as above
+  def filter[A](l: List[A])(f: A => Boolean): List[A] = {
+    foldRightWithFL(l, Nil:List[A]) { (h,t)=>
+      if(f(h)) Cons(h,t) else t
+    }
+  }
+  
+  //20. Ok
+  def flatMap[A,B](l: List[A])(f: A => List[B]) = {
+    concat(map(l)(f))
+  }
+  
+  //21. Ok
+  def filterViaFlatMap[A](l: List[A])(f: A=> Boolean) :List[A] = {
+    flatMap(l) (x => if(f(x)) List(x) else Nil)
+  }
+  
+  //22. Ok
+  def addLists(xs: List[Int], ys: List[Int]): List[Int] = (xs,ys) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(x,xt), Cons(y,yt)) => Cons(x+y, addLists(xt,yt))
+  }
+  
+  //23. Ok with types (name variation zipWith)
+  def mergeLists[A,B,C](xs: List[A], ys: List[B])(f: (A,B) => C): List[C] =(xs, ys) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(x,xt), Cons(y,yt)) => Cons(f(x,y), mergeLists(xt,yt)(f))
+  }
+  
+  //24.
 }
