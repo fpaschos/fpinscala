@@ -32,7 +32,7 @@ object Tree {
     case Branch(left, right) => Branch(map(left)(f), map(right)(f))
   }
   
-  //29. 
+  //29.  Ok
   def fold[A,B](tree: Tree[A])(f: A =>B)(g: (B,B)=>B):B = tree match{
     case Leaf(a) =>f(a)
     case Branch(left, right) => g(fold(left)(f)(g), fold(right)(f)(g))

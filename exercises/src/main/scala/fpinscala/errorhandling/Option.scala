@@ -1,18 +1,33 @@
 package fpinscala.errorhandling
 
 
-import scala.{Option => _, Some => _, Either => _, _} // hide std library `Option`, `Some` and `Either`, since we are writing our own in this chapter
+import scala.{Either => _, Option => _, Some => _} // hide std library `Option`, `Some` and `Either`, since we are writing our own in this chapter
 
+//1.
 sealed trait Option[+A] {
-  def map[B](f: A => B): Option[B] = sys.error("todo")
+  
+  //Ok
+  def map[B](f: A => B): Option[B] = this match {
+    case None => None
+    case Some(value) => Some(f(value))
+  }
 
-  def getOrElse[B>:A](default: => B): B = sys.error("todo")
+  def getOrElse[B>:A](default: => B): B = this match {
+    case None => default
+    case Some(value) => value
+  }
 
-  def flatMap[B](f: A => Option[B]): Option[B] = sys.error("todo")
+  //Ok
+  def flatMap[B](f: A => Option[B]): Option[B] = 
+    this map(f) getOrElse None
 
-  def orElse[B>:A](ob: => Option[B]): Option[B] = sys.error("todo")
+  //Fail (without pattern matching)
+  def orElse[B>:A](ob: => Option[B]): Option[B] =
+    this map(Some(_)) getOrElse ob
 
-  def filter(f: A => Boolean): Option[A] = sys.error("todo")
+  //Ok
+  def filter(f: A => Boolean): Option[A] = 
+    this flatMap(a => if(f(a)) Some(a) else None)
 }
 case class Some[+A](get: A) extends Option[A]
 case object None extends Option[Nothing]
