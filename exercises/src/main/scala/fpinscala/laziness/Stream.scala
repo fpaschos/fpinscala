@@ -31,12 +31,37 @@ trait Stream[+A] {
     case _ => Stream.empty
   }
 
-  def forAll(p: A => Boolean): Boolean = sys.error("todo")
+  //5. Ok
+  def takeWhileVieFoldRight (p: A => Boolean): Stream[A] = 
+    foldRight(Stream.empty[A]) { (x, acc) => if (p(x))  Stream.cons(x, acc) else Stream.empty[A]}
+  
+  //4. Ok with variation
+  def forAll(p: A => Boolean): Boolean = ! this.exists(!p(_))
+  def forAll_1(f: A => Boolean): Boolean =  foldRight(true)((a,b) => f(a) && b)
 
   def startsWith[B](s: Stream[B]): Boolean = sys.error("todo")
   
   //Exersise .1 OK Overflows for large lists (not tail recursive)
   def toList: List[A] = this.foldRight(List.empty[A])((h, acc) => h :: acc)
+  
+  
+  //6. Ok
+  def map[B](f: A => B): Stream[B] = {
+    this.foldRight(Stream.empty[B]){(h, t) => Stream.cons(f(h), t)}
+  }
+  
+  //6. Fail
+  def filter(f: A => Boolean):Stream[A] = {
+    this.foldRight(Stream.empty[A]) {(h,t) => if(f(h)) Stream.cons(h,t) else t}
+  }
+ 
+  //6 Fail
+  def append[B>:A](s: => Stream[B]): Stream[B] =
+    foldRight(s)((h,t) => Stream.cons(h,t))
+  
+  //6. Fail
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    this.foldRight(Stream.empty[B]) {(h,t) => f(h) append t}
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -55,7 +80,19 @@ object Stream {
     else cons(as.head, apply(as.tail: _*))
 
   val ones: Stream[Int] = Stream.cons(1, ones)
-  def from(n: Int): Stream[Int] = sys.error("todo")
+  
+  //7. Ok
+  def constant[A](a:A): Stream[A] = Stream.cons(a, constant(a))
 
+  //8. Ok
+  def from(n: Int): Stream[Int] = Stream.cons(n, from(n+1))
+
+  //9. Ok
+  val fibs = {
+    def go(f0: Int, f1: Int): Stream[Int] =
+      cons(f0, go(f1, f0+f1))
+    go(0, 1)
+  }
+  
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = sys.error("todo")
 }
