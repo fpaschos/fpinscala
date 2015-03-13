@@ -1,6 +1,4 @@
 package fpinscala.laziness
-
-import Stream._
 trait Stream[+A] {
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B = // The arrow `=>` in front of the argument type `B` means that the function `f` takes its second argument by name and may choose not to evaluate it.
@@ -17,15 +15,28 @@ trait Stream[+A] {
     case Empty => None
     case Cons(h, t) => if (f(h())) Some(h()) else t().find(f)
   }
-  def take(n: Int): Stream[A] = sys.error("todo")
+  
+  //2. Fail
+  def take(n: Int): Stream[A] = this match {
+    case Cons(h,t) if n > 1 => Stream.cons(h(), t() take(n-1))
+    case Cons(h,_) if n == 1 => Stream.cons(h(), Stream.empty)
+    case _ => Stream.empty
+  }
 
   def drop(n: Int): Stream[A] = sys.error("todo")
 
-  def takeWhile(p: A => Boolean): Stream[A] = sys.error("todo")
+  //3. Fail
+  def takeWhile(p: A => Boolean): Stream[A] = this match {
+    case Cons(h, t) if (p(h())) => Stream.cons(h(), t() takeWhile p)
+    case _ => Stream.empty
+  }
 
   def forAll(p: A => Boolean): Boolean = sys.error("todo")
 
   def startsWith[B](s: Stream[B]): Boolean = sys.error("todo")
+  
+  //Exersise .1 OK Overflows for large lists (not tail recursive)
+  def toList: List[A] = this.foldRight(List.empty[A])((h, acc) => h :: acc)
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
